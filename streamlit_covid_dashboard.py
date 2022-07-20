@@ -45,3 +45,5 @@ eu_map = helper_functions.create_map(country_coordinates=country_coordinates,
                                      dict_of_plots=dict_of_plots,
                                      kpi=kpi_for_map)
 folium_static(eu_map)
+
+st.write("Map was displayed")
