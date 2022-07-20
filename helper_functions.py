@@ -5,6 +5,7 @@ from geopy.geocoders import Nominatim
 import plotly.express as px
 import folium
 import altair as alt
+import streamlit as st
 
 
 def get_data_as_df_from_url(url, normalising_key, convert_to_datetime=True):
@@ -42,6 +43,7 @@ def plot_for_one_country(df, country_name, kpi):
     return plot
 
 
+@st.cache(allow_output_mutation=True)
 def plot_for_all_countries(df, countries, kpi, allow_output_mutation=True):
     dict_of_plots = dict()
     for country in countries:
@@ -50,6 +52,7 @@ def plot_for_all_countries(df, countries, kpi, allow_output_mutation=True):
     return dict_of_plots
 
 
+@st.cache(hash_funcs={folium.folium.Map: lambda _: None}, allow_output_mutation=True)
 def create_map(country_coordinates, dict_of_plots, kpi):
     europe_map = folium.Map(location=[54, 15], zoom_start=3.2, tiles='cartodbpositron')
     for key, value in country_coordinates.items():
