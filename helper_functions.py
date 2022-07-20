@@ -59,9 +59,9 @@ def create_map(country_coordinates, dict_of_plots, kpi):
             color="red",
             fill_opacity=0.7,
             radius=5,
-            popup=folium.Popup().add_child(
-                folium.features.VegaLite(country_plot)
-            )
+            #popup=folium.Popup().add_child(
+            #    folium.features.VegaLite(country_plot)
+            #)
         ).add_to(europe_map)
 
 
