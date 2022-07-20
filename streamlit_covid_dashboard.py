@@ -47,6 +47,4 @@ eu_map = helper_functions.create_map(country_coordinates=country_coordinates,
 folium_static(eu_map)
 
 st.write("Map was displayed")
-# Make an empty map
-europe_map = folium.Map(location=[54, 15], zoom_start=3.2, tiles='cartodbpositron')
-folium_static(europe_map)
+
