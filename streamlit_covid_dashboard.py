@@ -49,4 +49,4 @@ folium_static(eu_map)
 st.write("Map was displayed")
 # Make an empty map
 europe_map = folium.Map(location=[54, 15], zoom_start=3.2, tiles='cartodbpositron')
-st.write(europe_map)
+folium_static(europe_map)
