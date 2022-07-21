@@ -49,8 +49,8 @@ eu_map = helper_functions.create_map(country_coordinates=country_coordinates,
 folium_static(eu_map)
 
 st.header("Covid-19 statistics for EU Countries")
-st.write("The maps are interactive and can be zoomed on./n"
-         "You May click on the legend to disable some plotted lines./n"
+st.write("The maps are interactive and can be zoomed on.\n"
+         "You May click on the legend to disable some plotted lines.\n"
          "You May select multiple countries for which you wish to see the statistics.")
 countries_for_plot = st.multiselect('Select Countries',
                                     options=list(country_names),

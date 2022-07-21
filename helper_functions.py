@@ -57,7 +57,7 @@ def get_last_week_stats(df):
     return df_last_week_sum
 
 
-def plot_for_one_country(df, country_name, kpi):
+def plot_for_one_country(df, country_name):
     df_country = df[df.countriesAndTerritories == country_name]
     plot = alt.Chart(df_country, title=country_name).mark_line().encode(
             alt.X('date', scale=alt.Scale(zero=False)),
@@ -72,7 +72,7 @@ def plot_for_one_country(df, country_name, kpi):
 def plot_for_all_countries(df, countries, kpi, allow_output_mutation=True):
     dict_of_plots = dict()
     for country in countries:
-        plot = plot_for_one_country(df, country, kpi)
+        plot = plot_for_one_country(df, country)
         dict_of_plots[country] = plot
     return dict_of_plots
 
@@ -118,20 +118,37 @@ def get_pivot_df(df, date, country_column_name):
     return pivot_df
 
 
+def create_dict_labels(countries, suffix):
+    dict_labels = {country: f'{country}_{suffix}'  for country in countries}
+    return dict_labels
+
+
 def make_pivot_plots(df, countries, kpis=('cases', 'deaths'), country_column_name=constants.country_column_name,
                      date=constants.date):
     df_pivot = get_pivot_df(df, date, country_column_name)
 
     plot = make_subplots(specs=[[{'secondary_y': True}]])
+    cases_labels = create_dict_labels(countries, kpis[0])
+    deaths_labels = create_dict_labels(countries, kpis[1])
     y_axis_1 = px.line(df_pivot[kpis[0]], x=df_pivot[kpis[0]].index, y=countries)
     y_axis_2 = px.line(df_pivot[kpis[1]], x=df_pivot[kpis[1]].index, y=countries,
                        line_dash_sequence=['dot'],
                        color_discrete_sequence=px.colors.qualitative.Light24)
     y_axis_2.update_traces(yaxis='y2')
+    y_axis_1.for_each_trace(lambda t: t.update(name=cases_labels[t.name],
+                                               legendgroup=cases_labels[t.name],
+                                               hovertemplate=t.hovertemplate.replace(t.name, cases_labels[t.name])))
+    y_axis_2.for_each_trace(lambda t: t.update(name=deaths_labels[t.name],
+                                               legendgroup=deaths_labels[t.name],
+                                               hovertemplate=t.hovertemplate.replace(t.name, deaths_labels[t.name])))
     plot.add_traces(y_axis_1.data + y_axis_2.data)
     plot.layout.title = "Covid-19 trend plots"
     plot.layout.yaxis.title = kpis[0].upper()
     plot.layout.yaxis2.title = kpis[1].upper()
+    plot.update_layout(
+        autosize=False,
+        width=800,
+        height=500)
 
     return plot
 
