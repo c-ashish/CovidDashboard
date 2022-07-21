@@ -13,7 +13,7 @@ from branca.colormap import linear, LinearColormap
 import constants
 
 
-@st.cache(suppress_st_warning=True)
+@st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def get_data_as_df_from_url(url, normalising_key, convert_to_datetime=True):
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
@@ -31,7 +31,7 @@ def get_country_names(df, country_name_column):
     return country_names
 
 
-@st.cache(suppress_st_warning=True)
+@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_country_coordinates(country_names, geolocator_object):
     country_coordinates = dict()
     for country in country_names:
