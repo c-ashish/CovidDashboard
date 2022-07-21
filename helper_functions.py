@@ -2,7 +2,6 @@ import urllib
 import json
 
 import pandas as pd
-from geopy.geocoders import Nominatim
 import plotly.express as px
 from plotly.subplots import make_subplots
 import folium
@@ -13,7 +12,7 @@ from branca.colormap import linear, LinearColormap
 import constants
 
 
-@st.cache(suppress_st_warning=True,allow_output_mutation=True)
+#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_data_as_df_from_url(url, normalising_key, convert_to_datetime=True):
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
