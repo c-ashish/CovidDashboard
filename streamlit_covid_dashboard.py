@@ -59,4 +59,18 @@ countries_for_plot = st.multiselect('Select Countries',
 plot = helper_functions.make_pivot_plots(df, countries_for_plot)
 st.plotly_chart(plot)
 
+cases_weekly_change = helper_functions.get_weekly_change(df=df, kpi='cases')
+deaths_weekly_change = helper_functions.get_weekly_change(df=df, kpi='deaths')
 
+with st.sidebar:
+    st.write("Top 3 Countries with increased virus spread compared to previous 7 days of available data.")
+    country_1, country_2, country_3 = st.columns(3)
+    country_1.metric(label=cases_weekly_change.index[-1], value='Cases', delta=cases_weekly_change[-1])
+    country_2.metric(label=cases_weekly_change.index[-2], value='Cases', delta=cases_weekly_change[-2])
+    country_3.metric(label=cases_weekly_change.index[-3], value='Cases', delta=cases_weekly_change[-3])
+
+    st.write("Top 3 Countries with decreased virus spread compared to previous 7 days of available data.")
+    country_1, country_2, country_3 = st.columns(3)
+    country_1.metric(label=cases_weekly_change.index[1], value='Cases', delta=cases_weekly_change[1])
+    country_2.metric(label=cases_weekly_change.index[2], value='Cases', delta=cases_weekly_change[2])
+    country_3.metric(label=cases_weekly_change.index[3], value='Cases', delta=cases_weekly_change[3])

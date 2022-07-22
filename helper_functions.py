@@ -2,6 +2,7 @@ import urllib
 import json
 
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from plotly.subplots import make_subplots
 import folium
@@ -12,15 +13,19 @@ from branca.colormap import linear, LinearColormap
 import constants
 
 
-#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
-def get_data_as_df_from_url(url, normalising_key, convert_to_datetime=True):
+def get_data_from_url(url):
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
+    return data
+
+
+#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+def get_data_as_df_from_url(url, normalising_key, convert_to_datetime=True):
+    data = get_data_from_url(url)
     df = pd.json_normalize(data, normalising_key)
     if convert_to_datetime:
-        df["date"] = pd.to_datetime(df[['year', 'month', 'day']])
-    df = df.sort_values('date')
-
+        df[constants.DATE] = pd.to_datetime(df[['year', 'month', 'day']])
+        df = df.sort_values(constants.DATE)
     return df
 
 
@@ -42,11 +47,10 @@ def get_country_coordinates(country_names, geolocator_object):
 
 
 def get_last_week_stats(df):
-    df = df.sort_values('date')
-    cut_off_date = df['date'].max() - pd.to_timedelta("7 days")
-    df_last_week = df[df.date > cut_off_date]
+    df = df.sort_values(constants.DATE)
+    cut_off_date = df[constants.DATE].max() - pd.to_timedelta("7 days")
+    df_last_week = df[df.DATE > cut_off_date]
     df_last_week_sum = df_last_week.groupby("countriesAndTerritories").sum()
-    df_last_week_sum.drop(columns=['year'], inplace=True)
     total_weekly_cases = df_last_week_sum['cases'].sum()
     total_weekly_deaths = df_last_week_sum['deaths'].sum()
     df_last_week_sum['%total_EU_weekly_cases'] = df_last_week_sum.apply(lambda row: row['cases'] / total_weekly_cases,
@@ -60,7 +64,7 @@ def get_last_week_stats(df):
 def plot_for_one_country(df, country_name):
     df_country = df[df.countriesAndTerritories == country_name]
     plot = alt.Chart(df_country, title=country_name).mark_line().encode(
-            alt.X('date', scale=alt.Scale(zero=False)),
+            alt.X(constants.DATE, scale=alt.Scale(zero=False)),
             alt.Y('cases', scale=alt.Scale(zero=False))
         ).properties(
         height=120
@@ -69,7 +73,7 @@ def plot_for_one_country(df, country_name):
 
 
 @st.cache(allow_output_mutation=True)
-def plot_for_all_countries(df, countries, kpi, allow_output_mutation=True):
+def plot_for_all_countries(df, countries, kpi):
     dict_of_plots = dict()
     for country in countries:
         plot = plot_for_one_country(df, country)
@@ -97,7 +101,7 @@ def create_map(country_coordinates, dict_of_plots, df_last_week_sum, kpi, df):
             icon_color = 'black'
         folium.vector_layers.CircleMarker(
             tooltip=f"Country: {country}"
-                    f"\nDate: {df[df.countriesAndTerritories==country].iloc[-1]['date']}"
+                    f"\nDate: {df[df.countriesAndTerritories==country].iloc[-1][constants.DATE]}"
                     f"\nNumber of cases: {df[df.countriesAndTerritories==country].iloc[-1][kpi]}",
             location=coordinates,
             fill=True,
@@ -113,18 +117,18 @@ def create_map(country_coordinates, dict_of_plots, df_last_week_sum, kpi, df):
     return europe_map
 
 
-def get_pivot_df(df, date, country_column_name):
+def get_pivot_df(df, date=constants.DATE, country_column_name=constants.COUNTRY_COLUMN_NAME):
     pivot_df = df.pivot(index=date, columns=country_column_name, values=['cases', 'deaths'])
     return pivot_df
 
 
 def create_dict_labels(countries, suffix):
-    dict_labels = {country: f'{country}_{suffix}'  for country in countries}
+    dict_labels = {country: f'{country}_{suffix}' for country in countries}
     return dict_labels
 
 
-def make_pivot_plots(df, countries, kpis=('cases', 'deaths'), country_column_name=constants.country_column_name,
-                     date=constants.date):
+def make_pivot_plots(df, countries, kpis=('cases', 'deaths'), country_column_name=constants.COUNTRY_COLUMN_NAME,
+                     date=constants.DATE):
     df_pivot = get_pivot_df(df, date, country_column_name)
 
     plot = make_subplots(specs=[[{'secondary_y': True}]])
@@ -152,4 +156,23 @@ def make_pivot_plots(df, countries, kpis=('cases', 'deaths'), country_column_nam
 
     return plot
 
+
+def calculate_change_from_last_week(column):
+    column = column.replace(0.0, np.nan)
+    if column[-15:-1].isna().sum() > 6:
+        current_week = 1
+        last_week = 1
+    else:
+        column = column.dropna()
+        current_week = column.values[-7:].sum()
+        last_week = column.values[-14:-7].sum()
+    percent_increase = (current_week - last_week) / last_week * 100
+    return percent_increase
+
+
+def get_weekly_change(df, kpi):
+    pivot_df = get_pivot_df(df)
+    weekly_change = pivot_df[kpi].apply(calculate_change_from_last_week, axis=0)
+    weekly_change.sort_values(inplace=True)
+    return weekly_change
 
