@@ -11,12 +11,16 @@ st.write("""
 The dashboard gives you information about statistics and visualizations on the number of cases and number of deaths due
 to Covid-19.
 """)
+try:
+    df = helper_functions.get_data_as_df_from_url(
+        url='https://opendata.ecdc.europa.eu/covid19/nationalcasedeath_eueea_daily_ei/json/',
+        normalising_key='records',
+        convert_to_datetime=True
+    )
+except:
+    st.header('Error loading the data. Please try refreshing the page')
+    raise
 
-df = helper_functions.get_data_as_df_from_url(
-    url='https://opendata.ecdc.europa.eu/covid19/nationalcasedeath_eueea_daily_ei/json/',
-    normalising_key='records',
-    convert_to_datetime=True
-)
 country_names = helper_functions.get_country_names(
     df=df,
     country_name_column='countriesAndTerritories'
@@ -63,14 +67,22 @@ cases_weekly_change = helper_functions.get_weekly_change(df=df, kpi='cases')
 deaths_weekly_change = helper_functions.get_weekly_change(df=df, kpi='deaths')
 
 with st.sidebar:
+    st.header("KPIs for number of cases")
     st.write("Top 3 Countries with increased virus spread compared to previous 7 days of available data.")
     country_1, country_2, country_3 = st.columns(3)
-    country_1.metric(label=cases_weekly_change.index[-1], value='Cases', delta=cases_weekly_change[-1])
-    country_2.metric(label=cases_weekly_change.index[-2], value='Cases', delta=cases_weekly_change[-2])
-    country_3.metric(label=cases_weekly_change.index[-3], value='Cases', delta=cases_weekly_change[-3])
+    country_1.metric(label=cases_weekly_change.index[-1], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[-1]))
+    country_2.metric(label=cases_weekly_change.index[-2], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[-2]))
+    country_3.metric(label=cases_weekly_change.index[-3], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[-3]))
 
     st.write("Top 3 Countries with decreased virus spread compared to previous 7 days of available data.")
     country_1, country_2, country_3 = st.columns(3)
-    country_1.metric(label=cases_weekly_change.index[1], value='Cases', delta=cases_weekly_change[1])
-    country_2.metric(label=cases_weekly_change.index[2], value='Cases', delta=cases_weekly_change[2])
-    country_3.metric(label=cases_weekly_change.index[3], value='Cases', delta=cases_weekly_change[3])
+    country_1.metric(label=cases_weekly_change.index[1], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[1]))
+    country_2.metric(label=cases_weekly_change.index[2], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[2]))
+    country_3.metric(label=cases_weekly_change.index[3], value='Cases',
+                     delta="{:.2f}%".format(cases_weekly_change[3]))
+
